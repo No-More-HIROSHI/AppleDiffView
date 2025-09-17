@@ -31,5 +31,14 @@
   },
   "fortune_bottom_1": {
     "message": "Bottom 1%: Terrible luck!!"
+  },
+  "donation_message": {
+    "message": "If this extension has been helpful, I'd be grateful for your support—the price of a cup of coffee is enough! ☕"
+  },
+  "donation_link_text": {
+    "message": "Buy Me a Coffee"
+  },
+  "donation_link_url": {
+    "message": "https://buymeacoffee.com/hiroshiman"
   }
 }

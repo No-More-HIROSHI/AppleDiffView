@@ -9,6 +9,26 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('extensionDescription').innerText = chrome.i18n.getMessage('short_description');
     document.getElementById('fortuneButton').innerText = chrome.i18n.getMessage('fortune_button_label');
 
+    const donationMessageElement = document.getElementById('donationMessage');
+    donationMessageElement.textContent = chrome.i18n.getMessage('donation_message');
+
+    const donationLink = document.getElementById('donationLink');
+    const donationLinkUrl = chrome.i18n.getMessage('donation_link_url');
+    donationLink.innerText = chrome.i18n.getMessage('donation_link_text');
+    donationLink.href = donationLinkUrl;
+
+    donationMessageElement.appendChild(document.createTextNode(' '));
+    donationMessageElement.appendChild(donationLink);
+
+    donationLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        if (typeof chrome !== 'undefined' && chrome.tabs && typeof chrome.tabs.create === 'function') {
+            chrome.tabs.create({ url: donationLinkUrl });
+        } else {
+            window.open(donationLinkUrl, '_blank');
+        }
+    });
+
     // ボタンの機能
     const fortuneButton = document.getElementById('fortuneButton');
     fortuneButton.addEventListener('click', function() {
