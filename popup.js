@@ -1,7 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("Current browser language: ", navigator.language);
+    document.documentElement.lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+
     // ローカライズメッセージの適用
-    document.getElementById('extensionName').innerText = chrome.i18n.getMessage('extension_name');
-    document.getElementById('extensionDescription').innerText = chrome.i18n.getMessage('extension_description');
+    const extensionNameMessage = chrome.i18n.getMessage('extension_name');
+    document.title = extensionNameMessage;
+    document.getElementById('extensionName').innerText = extensionNameMessage;
+    document.getElementById('extensionDescription').innerText = chrome.i18n.getMessage('short_description');
     document.getElementById('fortuneButton').innerText = chrome.i18n.getMessage('fortune_button_label');
 
     // ボタンの機能
