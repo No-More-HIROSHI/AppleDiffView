@@ -3,9 +3,13 @@ console.log("content.jsが実行されました");
 const HIGHLIGHT_CLASS_NAME = 'apple-diff-view__highlight';
 const HIGHLIGHT_STYLE_ID = 'apple-diff-view-highlight-style';
 const HIGHLIGHT_COLOR = 'rgba(255, 255, 0, 0.3)';
+const MISSING_ROW_RETRY_DELAY_MS = 100;
+const MISSING_ROW_WARNING_MESSAGE = "セレクタにマッチする行が見つかりませんでした。\nHTML構造を確認してください。またはクラス名が変更されていないかご確認ください。";
 let mutationObserver = null;
 let isDiffCheckScheduled = false;
 let hasLoggedMissingRows = false;
+let hasSeenCompareRows = false;
+let pendingMissingRowCheck = null;
 
 const ensureHighlightStyle = () => {
     if (document.getElementById(HIGHLIGHT_STYLE_ID)) {
@@ -31,13 +35,38 @@ const highlightComparisonDifferences = () => {
     console.log(`取得した行数: ${rows.length}`);
 
     if (rows.length === 0) {
-        if (!hasLoggedMissingRows) {
-            console.warn("セレクタにマッチする行が見つかりませんでした。\nHTML構造を確認してください。またはクラス名が変更されていないかご確認ください。");
-            hasLoggedMissingRows = true;
+        if (hasSeenCompareRows) {
+            if (!hasLoggedMissingRows) {
+                console.warn(MISSING_ROW_WARNING_MESSAGE);
+                hasLoggedMissingRows = true;
+            }
+        } else if (!pendingMissingRowCheck && !hasLoggedMissingRows) {
+            pendingMissingRowCheck = setTimeout(() => {
+                pendingMissingRowCheck = null;
+
+                const retryRows = document.querySelectorAll('.compare-row');
+                if (retryRows.length === 0) {
+                    if (!hasLoggedMissingRows) {
+                        console.warn(MISSING_ROW_WARNING_MESSAGE);
+                        hasLoggedMissingRows = true;
+                    }
+                    return;
+                }
+
+                hasSeenCompareRows = true;
+                hasLoggedMissingRows = false;
+                highlightComparisonDifferences();
+            }, MISSING_ROW_RETRY_DELAY_MS);
         }
         return;
     }
 
+    if (pendingMissingRowCheck) {
+        clearTimeout(pendingMissingRowCheck);
+        pendingMissingRowCheck = null;
+    }
+
+    hasSeenCompareRows = true;
     hasLoggedMissingRows = false;
 
     rows.forEach((row, rowIndex) => {
