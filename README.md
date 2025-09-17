@@ -12,6 +12,11 @@ AppleDiffView は、差分表示を読みやすくするための Chrome 拡張�
 - Google Chrome（最新版を推奨）
 - インターネット接続（初回ダウンロード時に必要）
 
+## サポートのお願い
+
+もしこの拡張機能が役に立ったら、コーヒー1杯分の応援をいただけると嬉しいです ☕  
+[Buy Me a Coffee](https://buymeacoffee.com/hiroshiman)
+
 ## インストール手順（GitHub から ZIP をダウンロードして利用する場合）
 
 Git やコマンドラインを使わずに、Chrome に拡張機能として取り込む方法を説明します。
