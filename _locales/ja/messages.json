@@ -31,5 +31,14 @@
     },
     "fortune_bottom_1": {
       "message": "下位1%：大凶！！"
+    },
+    "donation_message": {
+      "message": "もしこの拡張機能が役に立ったら、コーヒー1杯分の応援をいただけると嬉しいです ☕"
+    },
+    "donation_link_text": {
+      "message": "Buy Me a Coffee"
+    },
+    "donation_link_url": {
+      "message": "https://buymeacoffee.com/hiroshiman"
     }
   }
