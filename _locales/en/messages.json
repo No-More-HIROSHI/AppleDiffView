@@ -1,6 +1,6 @@
 {
   "extension_name": {
-    "message": "Apple Product Comparison - Difference Extractor Extension"
+    "message": "Apple Product Comparison - Difference Highlight"
   },
   "full_description": {
     "message": "Overview: Highlights differences by changing the background color of rows that have changes. Troubleshooting: If it doesn't work properly, try reloading the page. Disclaimer: This extension was created by a non-engineer using Chat-GPT in just two hours. I don't fully understand the inner workings, but it seems to work. Even I'm surprised it works! Background: The comparison page for Apple products can be confusing! It's hard to figure out just the updates you want to see. So I made this extension in the middle of the night, feeling frustrated. Hope all Apple fans out there enjoy it! Have a great Apple Life (Happy Apple day for you)."
