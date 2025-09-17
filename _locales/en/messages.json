@@ -1,0 +1,35 @@
+{
+  "extension_name": {
+    "message": "Apple Product Comparison - Difference Extractor Extension"
+  },
+  "full_description": {
+    "message": "Overview: Highlights differences by changing the background color of rows that have changes. Troubleshooting: If it doesn't work properly, try reloading the page. Disclaimer: This extension was created by a non-engineer using Chat-GPT in just two hours. I don't fully understand the inner workings, but it seems to work. Even I'm surprised it works! Background: The comparison page for Apple products can be confusing! It's hard to figure out just the updates you want to see. So I made this extension in the middle of the night, feeling frustrated. Hope all Apple fans out there enjoy it! Have a great Apple Life (Happy Apple day for you)."
+  },
+  "short_description": {
+    "message": "This icon does nothing special when clicked."
+  },
+  "fortune_button_label": {
+    "message": "Check Today's Fortune"
+  },
+  "fortune_top_1": {
+    "message": "Top 1%: Extremely lucky! Buy a lottery ticket."
+  },
+  "fortune_top_10": {
+    "message": "Top 10%: Great luck!!"
+  },
+  "fortune_top_30": {
+    "message": "Top 30%: Good luck!!"
+  },
+  "fortune_top_70": {
+    "message": "Top 70%: Average luck!"
+  },
+  "fortune_bottom_30": {
+    "message": "Bottom 30%: Bad luck!"
+  },
+  "fortune_bottom_10": {
+    "message": "Bottom 10%: Very bad luck!"
+  },
+  "fortune_bottom_1": {
+    "message": "Bottom 1%: Terrible luck!!"
+  }
+}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title id="extensionTitle"></title>
+    <style>
+        body {
+            width: 500px;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2 id="extensionName"></h2>
+    <p id="extensionDescription"></p>
+    <button id="fortuneButton"></button>
+    <script>
+        // ブラウザの言語設定を取得して、lang属性を設定する
+        console.log("Current browser language: ", navigator.language);
+        document.documentElement.lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+
+        // ローカライズメッセージの適用
+        document.getElementById('extensionName').innerText = chrome.i18n.getMessage('extension_name');
+        document.getElementById('extensionDescription').innerText = chrome.i18n.getMessage('short_description');
+        document.getElementById('fortuneButton').innerText = chrome.i18n.getMessage('fortune_button_label');
+    </script>
+    <script src="popup.js"></script>
+</body>
+</html>

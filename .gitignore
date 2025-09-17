@@ -1,0 +1,23 @@
+﻿# OSごみ
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# エディタ
+.vscode/
+
+# ビルドや配布物をここに吐く場合
+dist/
+build/
+
+# Node系を使い始めたとき用
+node_modules/
+
+# 拡張機能のパッケージや鍵
+*.crx
+*.pem
+
+# 環境変数や秘密
+.env
+.env.*
+*.log
