@@ -1,5 +1,3 @@
-console.log("content.jsが実行されました");
-
 const HIGHLIGHT_CLASS_NAME = 'apple-diff-view__highlight';
 const HIGHLIGHT_STYLE_ID = 'apple-diff-view-highlight-style';
 const HIGHLIGHT_COLOR = 'rgba(255, 255, 0, 0.3)';
@@ -32,7 +30,6 @@ const highlightComparisonDifferences = () => {
     ensureHighlightStyle();
 
     const rows = document.querySelectorAll('.compare-row');
-    console.log(`取得した行数: ${rows.length}`);
 
     if (rows.length === 0) {
         if (hasSeenCompareRows) {
@@ -69,32 +66,22 @@ const highlightComparisonDifferences = () => {
     hasSeenCompareRows = true;
     hasLoggedMissingRows = false;
 
-    rows.forEach((row, rowIndex) => {
+    rows.forEach((row) => {
         const cells = row.querySelectorAll('.compare-column, .compare-cell');
-        console.log(`行 ${rowIndex + 1} のセル数: ${cells.length}`);
 
         if (cells.length > 1) {
-            const valuesArray = Array.from(cells).map(cell => cell.textContent.trim());
-            console.log(`行 ${rowIndex + 1} のセルの値:`, valuesArray);
-
-            const firstValue = valuesArray[0];
-            const isDifferent = valuesArray.some(value => value !== firstValue);
+            const values = Array.from(cells).map(cell => cell.textContent.trim());
+            const isDifferent = values.some(value => value !== values[0]);
 
             if (isDifferent) {
-                if (!row.classList.contains(HIGHLIGHT_CLASS_NAME)) {
-                    row.classList.add(HIGHLIGHT_CLASS_NAME);
-                    console.log(`行 ${rowIndex + 1} に異なる値が見つかったため、背景色を適用しました。`);
-                }
-            } else if (row.classList.contains(HIGHLIGHT_CLASS_NAME)) {
+                row.classList.add(HIGHLIGHT_CLASS_NAME);
+            } else {
                 row.classList.remove(HIGHLIGHT_CLASS_NAME);
-                console.log(`行 ${rowIndex + 1} の差分が解消されたため、背景色をリセットしました。`);
             }
-        } else if (row.classList.contains(HIGHLIGHT_CLASS_NAME)) {
+        } else {
             row.classList.remove(HIGHLIGHT_CLASS_NAME);
         }
     });
-
-    console.log(`${rows.length} 個の行をチェックしました。`);
 };
 
 const scheduleHighlightDifferences = () => {
@@ -119,11 +106,7 @@ const findCompareRowFromNode = (node) => {
         return node.closest('.compare-row');
     }
 
-    if ('parentElement' in node && node.parentElement) {
-        return node.parentElement.closest('.compare-row');
-    }
-
-    return null;
+    return node.parentElement?.closest('.compare-row') ?? null;
 };
 
 const nodeContainsCompareRow = (node) => {
@@ -132,11 +115,7 @@ const nodeContainsCompareRow = (node) => {
     }
 
     if (node.nodeType === Node.ELEMENT_NODE) {
-        if (node.matches('.compare-row')) {
-            return true;
-        }
-
-        return Boolean(node.querySelector('.compare-row'));
+        return node.matches('.compare-row') || Boolean(node.querySelector('.compare-row'));
     }
 
     if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
@@ -152,16 +131,11 @@ const handleMutations = (mutationsList) => {
             return true;
         }
 
-        const added = Array.from(mutation.addedNodes).some(nodeContainsCompareRow);
-        if (added) {
-            return true;
-        }
-
-        return Array.from(mutation.removedNodes).some(nodeContainsCompareRow);
+        return Array.from(mutation.addedNodes).some(nodeContainsCompareRow)
+            || Array.from(mutation.removedNodes).some(nodeContainsCompareRow);
     });
 
     if (hasRelevantMutation) {
-        console.log('比較表のDOM変化を検知したため、差分判定を再実行します。');
         scheduleHighlightDifferences();
     }
 };
@@ -183,22 +157,15 @@ const startObservingComparisonRows = () => {
         subtree: true,
         characterData: true,
     });
-
-    console.log('MutationObserver を設定しました。');
 };
 
 const initializeDiffHighlighting = () => {
-    console.log('差分判定の初期化を実行します。');
     highlightComparisonDifferences();
     startObservingComparisonRows();
 };
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOMContentLoaded イベントを受信しました。');
-        initializeDiffHighlighting();
-    });
+    document.addEventListener('DOMContentLoaded', initializeDiffHighlighting);
 } else {
-    console.log('document.readyState を確認し、即時初期化を実行します。');
     initializeDiffHighlighting();
 }

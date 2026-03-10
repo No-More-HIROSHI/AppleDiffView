@@ -1,20 +1,34 @@
+const FORTUNE_TIERS = [
+    [1,        'fortune_top_1'],
+    [10,       'fortune_top_10'],
+    [30,       'fortune_top_30'],
+    [70,       'fortune_top_70'],
+    [90,       'fortune_bottom_30'],
+    [99,       'fortune_bottom_10'],
+    [Infinity, 'fortune_bottom_1'],
+];
+
+const getFortuneMessage = () => {
+    const randomValue = Math.random() * 100;
+    const [, key] = FORTUNE_TIERS.find(([threshold]) => randomValue < threshold);
+    return chrome.i18n.getMessage(key);
+};
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Current browser language: ", navigator.language);
     document.documentElement.lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
 
-    // ローカライズメッセージの適用
-    const extensionNameMessage = chrome.i18n.getMessage('extension_name');
-    document.title = extensionNameMessage;
-    document.getElementById('extensionName').innerText = extensionNameMessage;
-    document.getElementById('extensionDescription').innerText = chrome.i18n.getMessage('short_description');
-    document.getElementById('fortuneButton').innerText = chrome.i18n.getMessage('fortune_button_label');
+    const extensionName = chrome.i18n.getMessage('extension_name');
+    document.title = extensionName;
+    document.getElementById('extensionName').textContent = extensionName;
+    document.getElementById('extensionDescription').textContent = chrome.i18n.getMessage('short_description');
+    document.getElementById('fortuneButton').textContent = chrome.i18n.getMessage('fortune_button_label');
 
     const donationMessageElement = document.getElementById('donationMessage');
     donationMessageElement.textContent = chrome.i18n.getMessage('donation_message');
 
     const donationLink = document.getElementById('donationLink');
     const donationLinkUrl = chrome.i18n.getMessage('donation_link_url');
-    donationLink.innerText = chrome.i18n.getMessage('donation_link_text');
+    donationLink.textContent = chrome.i18n.getMessage('donation_link_text');
     donationLink.href = donationLinkUrl;
 
     donationMessageElement.appendChild(document.createTextNode(' '));
@@ -29,28 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ボタンの機能
-    const fortuneButton = document.getElementById('fortuneButton');
-    fortuneButton.addEventListener('click', function() {
-        const randomValue = Math.random() * 100;
-        let message;
-
-        if (randomValue < 1) {
-            message = chrome.i18n.getMessage('fortune_top_1');
-        } else if (randomValue < 10) {
-            message = chrome.i18n.getMessage('fortune_top_10');
-        } else if (randomValue < 30) {
-            message = chrome.i18n.getMessage('fortune_top_30');
-        } else if (randomValue < 70) {
-            message = chrome.i18n.getMessage('fortune_top_70');
-        } else if (randomValue < 90) {
-            message = chrome.i18n.getMessage('fortune_bottom_30');
-        } else if (randomValue < 99) {
-            message = chrome.i18n.getMessage('fortune_bottom_10');
-        } else {
-            message = chrome.i18n.getMessage('fortune_bottom_1');
-        }
-
-        alert(message);
+    document.getElementById('fortuneButton').addEventListener('click', function() {
+        alert(getFortuneMessage());
     });
 });
