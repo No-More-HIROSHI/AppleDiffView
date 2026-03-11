@@ -1,7 +1,8 @@
 {
     "manifest_version": 3,
     "name": "__MSG_extension_name__",
-    "version": "1.0",
+    "version": "1.1",
+    "permissions": ["activeTab"],
     "description": "__MSG_full_description__",
     "icons": {
       "16": "icon_16.png",

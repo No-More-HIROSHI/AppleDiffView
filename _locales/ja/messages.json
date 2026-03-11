@@ -40,5 +40,29 @@
     },
     "donation_link_url": {
       "message": "https://buymeacoffee.com/hiroshiman"
+    },
+    "status_active": {
+      "message": "対象ページ"
+    },
+    "diff_count_label": {
+      "message": "差分 $COUNT 件",
+      "placeholders": {
+        "count": { "content": "$1", "example": "5" }
+      }
+    },
+    "not_target_page": {
+      "message": "Apple製品比較ページを開いてご利用ください。\n（apple.com/jp/…/compare/…）"
+    },
+    "highlight_label": {
+      "message": "差分ハイライト"
+    },
+    "highlight_sub": {
+      "message": "差分がある行を黄色でハイライト表示"
+    },
+    "diff_only_label": {
+      "message": "差分のみ表示"
+    },
+    "diff_only_sub": {
+      "message": "同一の行を非表示にする"
     }
   }

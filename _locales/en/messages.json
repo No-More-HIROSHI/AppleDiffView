@@ -40,5 +40,29 @@
   },
   "donation_link_url": {
     "message": "https://buymeacoffee.com/hiroshiman"
+  },
+  "status_active": {
+    "message": "Active Page"
+  },
+  "diff_count_label": {
+    "message": "$COUNT difference(s) found",
+    "placeholders": {
+      "count": { "content": "$1", "example": "5" }
+    }
+  },
+  "not_target_page": {
+    "message": "Please open an Apple product comparison page.\n(apple.com/jp/…/compare/…)"
+  },
+  "highlight_label": {
+    "message": "Difference Highlight"
+  },
+  "highlight_sub": {
+    "message": "Highlight rows with differences in yellow"
+  },
+  "diff_only_label": {
+    "message": "Diff Only Mode"
+  },
+  "diff_only_sub": {
+    "message": "Hide rows without differences"
   }
 }

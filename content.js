@@ -1,13 +1,19 @@
 const HIGHLIGHT_CLASS_NAME = 'apple-diff-view__highlight';
 const HIGHLIGHT_STYLE_ID = 'apple-diff-view-highlight-style';
 const HIGHLIGHT_COLOR = 'rgba(255, 255, 0, 0.3)';
+const DIFF_ONLY_HIDDEN_CLASS = 'apple-diff-view__hidden-row';
 const MISSING_ROW_RETRY_DELAY_MS = 100;
 const MISSING_ROW_WARNING_MESSAGE = "セレクタにマッチする行が見つかりませんでした。\nHTML構造を確認してください。またはクラス名が変更されていないかご確認ください。";
+
 let mutationObserver = null;
 let isDiffCheckScheduled = false;
 let hasLoggedMissingRows = false;
 let hasSeenCompareRows = false;
 let pendingMissingRowCheck = null;
+
+let isHighlightEnabled = true;
+let isDiffOnlyMode = false;
+let diffCount = 0;
 
 const ensureHighlightStyle = () => {
     if (document.getElementById(HIGHLIGHT_STYLE_ID)) {
@@ -22,7 +28,10 @@ const ensureHighlightStyle = () => {
 
     const style = document.createElement('style');
     style.id = HIGHLIGHT_STYLE_ID;
-    style.textContent = `.${HIGHLIGHT_CLASS_NAME} { background-color: ${HIGHLIGHT_COLOR} !important; }`;
+    style.textContent = [
+        `.${HIGHLIGHT_CLASS_NAME} { background-color: ${HIGHLIGHT_COLOR} !important; }`,
+        `.${DIFF_ONLY_HIDDEN_CLASS} { display: none !important; }`,
+    ].join('\n');
     head.appendChild(style);
 };
 
@@ -66,6 +75,8 @@ const highlightComparisonDifferences = () => {
     hasSeenCompareRows = true;
     hasLoggedMissingRows = false;
 
+    let count = 0;
+
     rows.forEach((row) => {
         const cells = row.querySelectorAll('.compare-column, .compare-cell');
 
@@ -74,14 +85,28 @@ const highlightComparisonDifferences = () => {
             const isDifferent = values.some(value => value !== values[0]);
 
             if (isDifferent) {
-                row.classList.add(HIGHLIGHT_CLASS_NAME);
+                count++;
+                if (isHighlightEnabled) {
+                    row.classList.add(HIGHLIGHT_CLASS_NAME);
+                } else {
+                    row.classList.remove(HIGHLIGHT_CLASS_NAME);
+                }
+                row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
             } else {
                 row.classList.remove(HIGHLIGHT_CLASS_NAME);
+                if (isHighlightEnabled && isDiffOnlyMode) {
+                    row.classList.add(DIFF_ONLY_HIDDEN_CLASS);
+                } else {
+                    row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
+                }
             }
         } else {
             row.classList.remove(HIGHLIGHT_CLASS_NAME);
+            row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
         }
     });
+
+    diffCount = count;
 };
 
 const scheduleHighlightDifferences = () => {
@@ -169,3 +194,33 @@ if (document.readyState === 'loading') {
 } else {
     initializeDiffHighlighting();
 }
+
+const getState = () => ({ diffCount, isHighlightEnabled, isDiffOnlyMode });
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    switch (message.action) {
+        case 'getState':
+            sendResponse(getState());
+            break;
+
+        case 'setHighlight':
+            isHighlightEnabled = message.value;
+            if (!isHighlightEnabled) {
+                isDiffOnlyMode = false;
+            }
+            highlightComparisonDifferences();
+            sendResponse(getState());
+            break;
+
+        case 'setDiffOnly':
+            if (isHighlightEnabled) {
+                isDiffOnlyMode = message.value;
+                highlightComparisonDifferences();
+            }
+            sendResponse(getState());
+            break;
+
+        default:
+            sendResponse({ error: 'unknown action' });
+    }
+});
