@@ -81,8 +81,12 @@ const highlightComparisonDifferences = () => {
         const cells = row.querySelectorAll('.compare-column, .compare-cell');
 
         if (cells.length > 1) {
-            const values = Array.from(cells).map(cell => cell.textContent.trim());
-            const isDifferent = values.some(value => value !== values[0]);
+            const cellsArray = Array.from(cells);
+            const values = cellsArray.map(cell => cell.textContent.trim());
+            const allEmpty = values.every(v => v === '');
+            const hasVisualContent = cellsArray.some(cell => cell.querySelector('img, picture, video'));
+            const isVisualRow = allEmpty || hasVisualContent;
+            const isDifferent = !isVisualRow && values.some(value => value !== values[0]);
 
             if (isDifferent) {
                 count++;
@@ -92,13 +96,18 @@ const highlightComparisonDifferences = () => {
                     row.classList.remove(HIGHLIGHT_CLASS_NAME);
                 }
                 row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
-            } else {
+            } else if (!isVisualRow) {
+                // テキストが同一の行 → 差分のみ表示モードで非表示候補
                 row.classList.remove(HIGHLIGHT_CLASS_NAME);
                 if (isHighlightEnabled && isDiffOnlyMode) {
                     row.classList.add(DIFF_ONLY_HIDDEN_CLASS);
                 } else {
                     row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
                 }
+            } else {
+                // 画像・空テキストのヘッダー行 → 常に表示
+                row.classList.remove(HIGHLIGHT_CLASS_NAME);
+                row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
             }
         } else {
             row.classList.remove(HIGHLIGHT_CLASS_NAME);
