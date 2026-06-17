@@ -3,149 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title></title>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            width: 320px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f5f7;
-            color: #1d1d1f;
-            font-size: 14px;
-        }
-
-        /* ---- Header ---- */
-        .popup-header {
-            background: #fff;
-            padding: 14px 16px 12px;
-            border-bottom: 1px solid #e5e5ea;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .popup-header img {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-        }
-        .popup-header-title {
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: -0.2px;
-        }
-
-        /* ---- Status row ---- */
-        .status-section {
-            padding: 10px 16px;
-            background: #fff;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-            font-weight: 500;
-            padding: 3px 9px;
-            border-radius: 100px;
-        }
-        .status-badge.active  { background: #d1f5d3; color: #1a7f35; }
-        .status-badge.inactive { background: #f2f2f7; color: #86868b; }
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-        .diff-count {
-            font-size: 13px;
-            color: #86868b;
-        }
-        .diff-count strong {
-            color: #1d1d1f;
-            font-weight: 600;
-        }
-
-        /* ---- Card ---- */
-        .card {
-            background: #fff;
-            margin: 8px 16px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .card-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-        }
-        .card-row + .card-row { border-top: 1px solid #f2f2f7; }
-        .card-row-label { display: flex; flex-direction: column; gap: 2px; }
-        .card-row-title { font-size: 14px; font-weight: 500; }
-        .card-row-sub   { font-size: 11px; color: #86868b; }
-
-        /* ---- Toggle switch ---- */
-        .toggle {
-            position: relative;
-            width: 44px;
-            height: 26px;
-            flex-shrink: 0;
-        }
-        .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-        .toggle-track {
-            position: absolute;
-            inset: 0;
-            background: #e5e5ea;
-            border-radius: 100px;
-            transition: background 0.2s;
-            cursor: pointer;
-        }
-        .toggle-track::after {
-            content: '';
-            position: absolute;
-            top: 3px; left: 3px;
-            width: 20px; height: 20px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
-        }
-        .toggle input:checked + .toggle-track { background: #34c759; }
-        .toggle input:checked + .toggle-track::after { transform: translateX(18px); }
-        .toggle input:disabled + .toggle-track { opacity: 0.35; cursor: not-allowed; }
-
-        /* ---- Not-target page ---- */
-        .not-target-section {
-            padding: 28px 20px;
-            text-align: center;
-            color: #86868b;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-        .not-target-section .icon { font-size: 30px; margin-bottom: 10px; }
-
-        /* ---- Footer ---- */
-        .popup-footer {
-            padding: 8px 16px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .footer-btn {
-            font-size: 11px;
-            color: #86868b;
-            text-decoration: none;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        .footer-btn:hover { color: #1d1d1f; background: #e5e5ea; }
-    </style>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <div class="popup-header">
@@ -155,7 +13,7 @@
 
     <div id="mainContent">
         <div class="status-section">
-            <span class="status-badge active" id="statusBadge">
+            <span class="status-badge active">
                 <span class="status-dot"></span>
                 <span id="statusText"></span>
             </span>
@@ -198,6 +56,7 @@
         <a class="footer-btn" id="donationLink" href="#" target="_blank" rel="noopener noreferrer"></a>
     </div>
 
+    <script src="constants.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>

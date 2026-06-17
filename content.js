@@ -1,7 +1,7 @@
-const HIGHLIGHT_CLASS_NAME = 'apple-diff-view__highlight';
-const HIGHLIGHT_STYLE_ID = 'apple-diff-view-highlight-style';
-const HIGHLIGHT_COLOR = 'rgba(255, 255, 0, 0.3)';
-const DIFF_ONLY_HIDDEN_CLASS = 'apple-diff-view__hidden-row';
+// 共有定数 (APPLE_DIFF) は constants.js で定義され、manifest の content_scripts で
+// constants.js → content.js の順に読み込まれる。
+const { ACTIONS, SELECTORS, CLASSES, STYLE_ID, HIGHLIGHT_COLOR } = APPLE_DIFF;
+
 const MISSING_ROW_RETRY_DELAY_MS = 100;
 const MISSING_ROW_WARNING_MESSAGE = "セレクタにマッチする行が見つかりませんでした。\nHTML構造を確認してください。またはクラス名が変更されていないかご確認ください。";
 
@@ -9,14 +9,14 @@ let mutationObserver = null;
 let isDiffCheckScheduled = false;
 let hasLoggedMissingRows = false;
 let hasSeenCompareRows = false;
-let pendingMissingRowCheck = null;
+let missingRowWarningTimer = null;
 
 let isHighlightEnabled = true;
 let isDiffOnlyMode = false;
 let diffCount = 0;
 
 const ensureHighlightStyle = () => {
-    if (document.getElementById(HIGHLIGHT_STYLE_ID)) {
+    if (document.getElementById(STYLE_ID)) {
         return;
     }
 
@@ -27,95 +27,102 @@ const ensureHighlightStyle = () => {
     }
 
     const style = document.createElement('style');
-    style.id = HIGHLIGHT_STYLE_ID;
+    style.id = STYLE_ID;
     style.textContent = [
-        `.${HIGHLIGHT_CLASS_NAME} { background-color: ${HIGHLIGHT_COLOR} !important; }`,
-        `.${DIFF_ONLY_HIDDEN_CLASS} { display: none !important; }`,
+        `.${CLASSES.HIGHLIGHT} { background-color: ${HIGHLIGHT_COLOR} !important; }`,
+        `.${CLASSES.HIDDEN} { display: none !important; }`,
     ].join('\n');
     head.appendChild(style);
+};
+
+// 1 行を分類する純粋関数。DOM は変更しない。
+//   'ignore' : 比較セルが 1 つ以下 → 対象外
+//   'visual' : 画像・空テキストのヘッダー行 → 常に表示
+//   'diff'   : テキストに差分あり → ハイライト対象
+//   'same'   : テキストが同一 → 差分のみ表示モードで非表示候補
+const classifyRow = (row) => {
+    const cells = Array.from(row.querySelectorAll(SELECTORS.CELL));
+
+    if (cells.length <= 1) {
+        return 'ignore';
+    }
+
+    const values = cells.map(cell => cell.textContent.trim());
+    const allEmpty = values.every(value => value === '');
+    const hasVisualContent = cells.some(cell => cell.querySelector(SELECTORS.VISUAL));
+
+    if (allEmpty || hasVisualContent) {
+        return 'visual';
+    }
+
+    return values.some(value => value !== values[0]) ? 'diff' : 'same';
 };
 
 const highlightComparisonDifferences = () => {
     ensureHighlightStyle();
 
-    const rows = document.querySelectorAll('.compare-row');
+    const rows = document.querySelectorAll(SELECTORS.ROW);
 
     if (rows.length === 0) {
-        if (hasSeenCompareRows) {
-            if (!hasLoggedMissingRows) {
-                console.warn(MISSING_ROW_WARNING_MESSAGE);
-                hasLoggedMissingRows = true;
-            }
-        } else if (!pendingMissingRowCheck && !hasLoggedMissingRows) {
-            pendingMissingRowCheck = setTimeout(() => {
-                pendingMissingRowCheck = null;
-
-                const retryRows = document.querySelectorAll('.compare-row');
-                if (retryRows.length === 0) {
-                    if (!hasLoggedMissingRows) {
-                        console.warn(MISSING_ROW_WARNING_MESSAGE);
-                        hasLoggedMissingRows = true;
-                    }
-                    return;
-                }
-
-                hasSeenCompareRows = true;
-                hasLoggedMissingRows = false;
-                highlightComparisonDifferences();
-            }, MISSING_ROW_RETRY_DELAY_MS);
-        }
+        scheduleMissingRowWarning();
         return;
     }
 
-    if (pendingMissingRowCheck) {
-        clearTimeout(pendingMissingRowCheck);
-        pendingMissingRowCheck = null;
-    }
-
+    cancelMissingRowWarning();
     hasSeenCompareRows = true;
     hasLoggedMissingRows = false;
 
     let count = 0;
 
     rows.forEach((row) => {
-        const cells = row.querySelectorAll('.compare-column, .compare-cell');
+        const category = classifyRow(row);
 
-        if (cells.length > 1) {
-            const cellsArray = Array.from(cells);
-            const values = cellsArray.map(cell => cell.textContent.trim());
-            const allEmpty = values.every(v => v === '');
-            const hasVisualContent = cellsArray.some(cell => cell.querySelector('img, picture, video'));
-            const isVisualRow = allEmpty || hasVisualContent;
-            const isDifferent = !isVisualRow && values.some(value => value !== values[0]);
-
-            if (isDifferent) {
+        switch (category) {
+            case 'diff':
                 count++;
-                if (isHighlightEnabled) {
-                    row.classList.add(HIGHLIGHT_CLASS_NAME);
-                } else {
-                    row.classList.remove(HIGHLIGHT_CLASS_NAME);
-                }
-                row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
-            } else if (!isVisualRow) {
-                // テキストが同一の行 → 差分のみ表示モードで非表示候補
-                row.classList.remove(HIGHLIGHT_CLASS_NAME);
-                if (isHighlightEnabled && isDiffOnlyMode) {
-                    row.classList.add(DIFF_ONLY_HIDDEN_CLASS);
-                } else {
-                    row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
-                }
-            } else {
-                // 画像・空テキストのヘッダー行 → 常に表示
-                row.classList.remove(HIGHLIGHT_CLASS_NAME);
-                row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
-            }
-        } else {
-            row.classList.remove(HIGHLIGHT_CLASS_NAME);
-            row.classList.remove(DIFF_ONLY_HIDDEN_CLASS);
+                row.classList.toggle(CLASSES.HIGHLIGHT, isHighlightEnabled);
+                row.classList.remove(CLASSES.HIDDEN);
+                break;
+
+            case 'same':
+                row.classList.remove(CLASSES.HIGHLIGHT);
+                row.classList.toggle(CLASSES.HIDDEN, isHighlightEnabled && isDiffOnlyMode);
+                break;
+
+            default: // 'visual' / 'ignore' → 常に表示
+                row.classList.remove(CLASSES.HIGHLIGHT);
+                row.classList.remove(CLASSES.HIDDEN);
         }
     });
 
     diffCount = count;
+};
+
+// 行が見つからない場合の警告。ページ描画が間に合っていないだけのことがあるため、
+// 一度だけ猶予を置いて再確認し、それでも無ければ 1 度だけ警告する。
+// 行が遅れて出現した場合の再描画は MutationObserver に任せる。
+const scheduleMissingRowWarning = () => {
+    if (hasSeenCompareRows || hasLoggedMissingRows || missingRowWarningTimer) {
+        return;
+    }
+
+    missingRowWarningTimer = setTimeout(() => {
+        missingRowWarningTimer = null;
+
+        if (hasSeenCompareRows || document.querySelector(SELECTORS.ROW)) {
+            return;
+        }
+
+        console.warn(MISSING_ROW_WARNING_MESSAGE);
+        hasLoggedMissingRows = true;
+    }, MISSING_ROW_RETRY_DELAY_MS);
+};
+
+const cancelMissingRowWarning = () => {
+    if (missingRowWarningTimer) {
+        clearTimeout(missingRowWarningTimer);
+        missingRowWarningTimer = null;
+    }
 };
 
 const scheduleHighlightDifferences = () => {
@@ -137,10 +144,10 @@ const findCompareRowFromNode = (node) => {
     }
 
     if (node.nodeType === Node.ELEMENT_NODE) {
-        return node.closest('.compare-row');
+        return node.closest(SELECTORS.ROW);
     }
 
-    return node.parentElement?.closest('.compare-row') ?? null;
+    return node.parentElement?.closest(SELECTORS.ROW) ?? null;
 };
 
 const nodeContainsCompareRow = (node) => {
@@ -149,7 +156,7 @@ const nodeContainsCompareRow = (node) => {
     }
 
     if (node.nodeType === Node.ELEMENT_NODE) {
-        return node.matches('.compare-row') || Boolean(node.querySelector('.compare-row'));
+        return node.matches(SELECTORS.ROW) || Boolean(node.querySelector(SELECTORS.ROW));
     }
 
     if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
@@ -208,11 +215,11 @@ const getState = () => ({ diffCount, isHighlightEnabled, isDiffOnlyMode });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     switch (message.action) {
-        case 'getState':
+        case ACTIONS.GET_STATE:
             sendResponse(getState());
             break;
 
-        case 'setHighlight':
+        case ACTIONS.SET_HIGHLIGHT:
             isHighlightEnabled = message.value;
             if (!isHighlightEnabled) {
                 isDiffOnlyMode = false;
@@ -221,7 +228,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             sendResponse(getState());
             break;
 
-        case 'setDiffOnly':
+        case ACTIONS.SET_DIFF_ONLY:
             if (isHighlightEnabled) {
                 isDiffOnlyMode = message.value;
                 highlightComparisonDifferences();

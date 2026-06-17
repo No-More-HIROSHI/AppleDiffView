@@ -1,3 +1,23 @@
+// 共有定数 (APPLE_DIFF) は constants.js で定義され、popup.html で
+// constants.js → popup.js の順に読み込まれる。
+const { ACTIONS } = APPLE_DIFF;
+
+// manifest の content_scripts マッチパターン (…/jp/*/compare/*) と整合させる。
+// `*` は `/` を含む任意文字にマッチするため、ここでも `.+` で複数セグメントを許容する。
+const TARGET_URL_PATTERN = /^https:\/\/www\.apple\.com\/jp\/.+\/compare\//;
+
+// 要素 id → i18n メッセージキー（textContent を入れるだけのもの）
+const TEXT_BINDINGS = {
+    headerTitle:    'extension_name',
+    statusText:     'status_active',
+    highlightLabel: 'highlight_label',
+    highlightSub:   'highlight_sub',
+    diffOnlyLabel:  'diff_only_label',
+    diffOnlySub:    'diff_only_sub',
+    notTargetText:  'not_target_page',
+    fortuneButton:  'fortune_button_label',
+};
+
 const FORTUNE_TIERS = [
     [1,        'fortune_top_1'],
     [10,       'fortune_top_10'],
@@ -37,26 +57,21 @@ const applyState = ({ diffCount, isHighlightEnabled, isDiffOnlyMode }) => {
 };
 
 const showNotTarget = () => {
-    document.getElementById('mainContent').style.display     = 'none';
+    document.getElementById('mainContent').style.display      = 'none';
     document.getElementById('notTargetContent').style.display = '';
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-    document.documentElement.lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+const applyLocalizedText = () => {
+    for (const [id, messageKey] of Object.entries(TEXT_BINDINGS)) {
+        document.getElementById(id).textContent = chrome.i18n.getMessage(messageKey);
+    }
+    document.title = chrome.i18n.getMessage('extension_name');
+};
 
-    const extensionName = chrome.i18n.getMessage('extension_name');
-    document.title = extensionName;
-    document.getElementById('headerTitle').textContent    = extensionName;
-    document.getElementById('statusText').textContent     = chrome.i18n.getMessage('status_active');
-    document.getElementById('highlightLabel').textContent = chrome.i18n.getMessage('highlight_label');
-    document.getElementById('highlightSub').textContent   = chrome.i18n.getMessage('highlight_sub');
-    document.getElementById('diffOnlyLabel').textContent  = chrome.i18n.getMessage('diff_only_label');
-    document.getElementById('diffOnlySub').textContent    = chrome.i18n.getMessage('diff_only_sub');
-    document.getElementById('notTargetText').textContent  = chrome.i18n.getMessage('not_target_page');
-    document.getElementById('fortuneButton').textContent  = chrome.i18n.getMessage('fortune_button_label');
-
+const setupDonationLink = () => {
     const donationLink    = document.getElementById('donationLink');
     const donationLinkUrl = chrome.i18n.getMessage('donation_link_url');
+
     donationLink.textContent = chrome.i18n.getMessage('donation_link_text');
     donationLink.href        = donationLinkUrl;
 
@@ -68,28 +83,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.open(donationLinkUrl, '_blank');
         }
     });
+};
+
+const getActiveTab = async () => {
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        return tab ?? null;
+    } catch {
+        return null;
+    }
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+    document.documentElement.lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+
+    applyLocalizedText();
+    setupDonationLink();
 
     document.getElementById('fortuneButton').addEventListener('click', () => {
         alert(getFortuneMessage());
     });
 
-    // アクティブタブを取得
-    let tab;
-    try {
-        [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    } catch {
-        showNotTarget();
-        return;
-    }
-
-    if (!tab?.id) {
-        showNotTarget();
-        return;
-    }
-
-    // 対象URLか確認
-    const isTargetUrl = /^https:\/\/www\.apple\.com\/jp\/[^/]+\/compare\//.test(tab.url ?? '');
-    if (!isTargetUrl) {
+    const tab = await getActiveTab();
+    if (!tab?.id || !TARGET_URL_PATTERN.test(tab.url ?? '')) {
         showNotTarget();
         return;
     }
@@ -97,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // content script から状態取得
     let state;
     try {
-        state = await sendToContent(tab.id, { action: 'getState' });
+        state = await sendToContent(tab.id, { action: ACTIONS.GET_STATE });
     } catch {
         showNotTarget();
         return;
@@ -113,14 +129,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // トグルイベント
     document.getElementById('highlightToggle').addEventListener('change', async (e) => {
         try {
-            const newState = await sendToContent(tab.id, { action: 'setHighlight', value: e.target.checked });
+            const newState = await sendToContent(tab.id, { action: ACTIONS.SET_HIGHLIGHT, value: e.target.checked });
             applyState(newState);
         } catch { /* ページが閉じた等 */ }
     });
 
     document.getElementById('diffOnlyToggle').addEventListener('change', async (e) => {
         try {
-            const newState = await sendToContent(tab.id, { action: 'setDiffOnly', value: e.target.checked });
+            const newState = await sendToContent(tab.id, { action: ACTIONS.SET_DIFF_ONLY, value: e.target.checked });
             applyState(newState);
         } catch { /* 同上 */ }
     });

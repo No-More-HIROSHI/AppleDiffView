@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "__MSG_extension_name__",
-    "version": "1.1",
+    "version": "1.2",
     "permissions": ["activeTab"],
     "description": "__MSG_full_description__",
     "icons": {
@@ -20,7 +20,7 @@
     "content_scripts": [
         {
             "matches": ["https://www.apple.com/jp/*/compare/*"],
-            "js": ["content.js"],
+            "js": ["constants.js", "content.js"],
             "run_at": "document_idle"
         }
     ],
