@@ -1,0 +1,15 @@
+{
+  "name": "apple-diff-view",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Apple 製品比較ページの差分をハイライトする Chrome 拡張機能",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0"
+  }
+}
